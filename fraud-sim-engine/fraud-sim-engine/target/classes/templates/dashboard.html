@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+        }
+
+        /* SIDEBAR */
+        #sidebar {
+            width: 240px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1b2b4a, #0d172a);
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding-top: 30px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        }
+
+        #sidebar .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        #sidebar .menu-item {
+            padding: 15px 25px;
+            color: #d4d8e3;
+            text-decoration: none;
+            font-size: 18px;
+            display: block;
+            transition: 0.3s;
+        }
+
+        #sidebar .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 35px;
+            color: #fff;
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: bold;
+        }
+
+        #content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #1b2b4a;
+        }
+
+        /* Run button */
+        #runBtn {
+            padding: 12px 20px;
+            background: #1b2b4a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        /* Charts */
+        .chart-container {
+            width: 500px;
+            height: 300px;
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Transactions Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        th {
+            background: #1b2b4a;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #eef3ff;
+        }
+        /* DARK MODE THEME */
+body.dark {
+    background: #121212;
+    color: #e8e8e8;
+}
+
+body.dark #content h1 {
+    color: #d5d9e2;
+}
+
+body.dark .form-box,
+body.dark .result-box {
+    background: #1e1e1e;
+    color: #e8e8e8;
+    box-shadow: 0 4px 15px rgba(255,255,255,0.05);
+}
+
+body.dark input, 
+body.dark select {
+    background: #2b2b2b;
+    color: white;
+    border: 1px solid #555;
+}
+
+body.dark .btn {
+    background: #2d4dff;
+}
+
+body.dark #sidebar {
+    background: linear-gradient(180deg, #0d0d0d, #1c1c1c);
+}
+/* HISTORY PAGE – DARK MODE FIX */
+body.dark table {
+    background: #1e1e1e;
+    color: #e8e8e8;
+}
+
+body.dark table th {
+    background: #0d0d0d !important;
+    color: #ffffff !important;
+}
+
+body.dark table tr {
+    background: #1e1e1e !important;
+}
+
+body.dark table tr:nth-child(even) {
+    background: #252525 !important;
+}
+
+body.dark table td {
+    color: #e8e8e8 !important;
+}
+
+/* Fraud and Safe colors unchanged */
+body.dark .fraud {
+    color: #ff4a4a !important;
+}
+
+body.dark .safe {
+    color: #2cff75 !important;
+}
+
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+    <h2 class="logo">FraudSim</h2>
+
+    <a href="/dashboard" class="menu-item">📊 Dashboard</a>
+    <a href="/manual-check" class="menu-item">📝 Manual Check</a>
+    <a href="/history" class="menu-item">📜 Transaction History</a>
+    <div style="margin-top:auto; padding: 20px; text-align:center;">
+    <button id="toggleThemeBtn" 
+            style="padding:10px 20px; border:none; border-radius:8px; background:#ffffff20; color:white; cursor:pointer;">
+        🌙 Dark Mode
+    </button>
+</div>
+
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="content">
+    <h1>Dashboard</h1>
+    <p>Welcome to your Fraud Simulation Engine Dashboard.</p>
+
+    <!-- Run simulation -->
+    <button id="runBtn" onclick="runSimulation()">▶ Run Simulation </button>
+
+    <!-- Charts -->
+    <div>
+        <div class="chart-container">
+            <canvas id="pieChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ⭐ TRANSACTION TABLE -->
+    <h2 style="color:#1b2b4a;">Latest Generated Transactions</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tx ID</th>
+                <th>Account</th>
+                <th>Amount</th>
+                <th>Merchant</th>
+                <th>Location</th>
+                <th>Fraud</th>
+            </tr>
+        </thead>
+        <tbody id="txTableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    /* Highlight Active Menu Item */
+    const links = document.querySelectorAll(".menu-item");
+    links.forEach(l => {
+        if (l.href.includes(window.location.pathname)) l.classList.add("active");
+    });
+
+    /* PIE CHART */
+    const pieCtx = document.getElementById("pieChart").getContext("2d");
+    let pieChart = new Chart(pieCtx, {
+        type: "pie",
+        data: {
+            labels: ["Fraud", "Safe"],
+            datasets: [{
+                data: [0, 0],
+                backgroundColor: ["#e63946", "#2a9d8f"]
+            }]
+        }
+    });
+
+    /* BAR CHART */
+    const barCtx = document.getElementById("barChart").getContext("2d");
+    let barChart = new Chart(barCtx, {
+        type: "bar",
+        data: {
+            labels: [],
+            datasets: [{
+                label: "Transactions per Merchant",
+                data: [],
+                backgroundColor: "#1b2b4a"
+            }]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+    });
+
+    /* RUN SIMULATION */
+    function runSimulation() {
+        fetch("/simulate?count=50&fraudRate=0.2")
+            .then(res => res.json())
+            .then(data => {
+                updateCharts(data);
+                updateTable(data);
+            });
+    }
+
+    /* UPDATE TABLE */
+    function updateTable(data) {
+        let table = document.getElementById("txTableBody");
+        table.innerHTML = "";
+
+        data.forEach(tx => {
+            table.innerHTML += `
+                <tr>
+                    <td>${tx.txId}</td>
+                    <td>${tx.accountId}</td>
+                    <td>₹${tx.amount.toFixed(2)}</td>
+                    <td>${tx.merchant}</td>
+                    <td>${tx.location}</td>
+                    <td style="color:${tx.fraud ? 'red' : 'green'}; font-weight:600;">
+                        ${tx.fraud ? 'YES' : 'NO'}
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    /* DARK MODE TOGGLE */
+const toggleBtn = document.getElementById("toggleThemeBtn");
+
+// Load saved mode
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    toggleBtn.textContent = "☀ Light Mode";
+}
+
+// Toggle theme
+toggleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+        toggleBtn.textContent = "☀ Light Mode";
+    } else {
+        localStorage.setItem("theme", "light");
+        toggleBtn.textContent = "🌙 Dark Mode";
+    }
+});
+
+
+    /* UPDATE CHARTS */
+    function updateCharts(data) {
+        let fraud = data.filter(t => t.fraud).length;
+        let safe = data.length - fraud;
+
+        pieChart.data.datasets[0].data = [fraud, safe];
+        pieChart.update();
+
+        let merchantMap = {};
+        data.forEach(t => {
+            merchantMap[t.merchant] = (merchantMap[t.merchant] || 0) + 1;
+        });
+
+        barChart.data.labels = Object.keys(merchantMap);
+        barChart.data.datasets[0].data = Object.values(merchantMap);
+        barChart.update();
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual Fraud Check</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background: #f4f6f9;
+            font-family: Poppins, sans-serif;
+        }
+
+        /* SIDEBAR */
+        #sidebar {
+            width: 240px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1b2b4a, #0d172a);
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding-top: 30px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        }
+
+        #sidebar .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        #sidebar .menu-item {
+            padding: 15px 25px;
+            color: #d4d8e3;
+            text-decoration: none;
+            font-size: 18px;
+            display: block;
+            transition: 0.3s;
+        }
+
+        #sidebar .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 35px;
+            color: #fff;
+        }
+
+        .active {
+            background: rgba(255,255,255,0.25);
+            font-weight: bold;
+            color: white !important;
+        }
+
+        /* MAIN CONTENT */
+        #content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #1f2d53;
+        }
+
+        .form-box {
+            width: 450px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            background: #1f2d53;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .result-box {
+            width: 450px;
+            background: #ffffff;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .fraud { color: red; font-weight: 600; }
+        .safe { color: green; font-weight: 600; }
+
+        ul { padding-left: 20px; text-align: left; }
+        /* DARK MODE THEME */
+body.dark {
+    background: #121212;
+    color: #e8e8e8;
+}
+
+body.dark #content h1 {
+    color: #d5d9e2;
+}
+
+body.dark .form-box,
+body.dark .result-box {
+    background: #1e1e1e;
+    color: #e8e8e8;
+    box-shadow: 0 4px 15px rgba(255,255,255,0.05);
+}
+
+body.dark input, 
+body.dark select {
+    background: #2b2b2b;
+    color: white;
+    border: 1px solid #555;
+}
+
+body.dark .btn {
+    background: #2d4dff;
+}
+
+body.dark #sidebar {
+    background: linear-gradient(180deg, #0d0d0d, #1c1c1c);
+}
+/* HISTORY PAGE – DARK MODE FIX */
+body.dark table {
+    background: #1e1e1e;
+    color: #e8e8e8;
+}
+
+body.dark table th {
+    background: #0d0d0d !important;
+    color: #ffffff !important;
+}
+
+body.dark table tr {
+    background: #1e1e1e !important;
+}
+
+body.dark table tr:nth-child(even) {
+    background: #252525 !important;
+}
+
+body.dark table td {
+    color: #e8e8e8 !important;
+}
+
+/* Fraud and Safe colors unchanged */
+body.dark .fraud {
+    color: #ff4a4a !important;
+}
+
+body.dark .safe {
+    color: #2cff75 !important;
+}
+
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+    <h2 class="logo">FraudSim</h2>
+
+    <a href="/dashboard" class="menu-item">📊 Dashboard</a>
+    <a href="/manual-check" class="menu-item active">📝 Manual Check</a>
+    <a href="/history" class="menu-item">📜 Transaction History</a>
+    <div style="margin-top:auto; padding: 20px; text-align:center;">
+    <button id="toggleThemeBtn" 
+            style="padding:10px 20px; border:none; border-radius:8px; background:#ffffff20; color:white; cursor:pointer;">
+        🌙 Dark Mode
+    </button>
+</div>
+
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="content">
+
+    <h1>Manual Fraud Check</h1>
+
+    <div class="form-box">
+        <label>Account ID</label>
+        <input id="acc" type="text">
+
+        <label>Amount</label>
+        <input id="amt" type="number">
+
+        <label>Merchant</label>
+        <input id="mer" type="text">
+
+        <label>Channel</label>
+        <select id="cha">
+            <option>UPI</option>
+            <option>Online</option>
+            <option>POS</option>
+            <option>ATM</option>
+        </select>
+
+        <label>Location</label>
+        <input id="loc" type="text">
+
+        <button class="btn" onclick="checkFraud()">Check</button>
+    </div>
+
+    <div class="result-box" id="resultBox"></div>
+
+</div>
+
+<script>
+
+let txData = null;
+
+/* FRAUD REASON GENERATOR */
+function generateFraudReasons(tx) {
+    let reasons = [];
+
+    if (tx.amount > 50000)
+        reasons.push("Unusually high transaction amount.");
+
+    if (tx.recentTxCount > 3)
+        reasons.push("Multiple fast transactions indicate suspicious behavior.");
+
+    if (["Online Gaming", "Crypto Exchange", "Unknown Merchant"].includes(tx.merchant))
+        reasons.push("Merchant has a high historical fraud risk.");
+
+    if (tx.channel === "ATM")
+        reasons.push("ATM withdrawals have higher fraud probability.");
+
+    if (["Unknown", "Foreign", "Suspicious Area"].includes(tx.location))
+        reasons.push("Transaction originated from a risky location.");
+
+    if (tx.score > 0.75)
+        reasons.push("Final fraud score is critically high.");
+
+    if (reasons.length === 0)
+        reasons.push("No major fraud indicators detected.");
+
+    return reasons;
+}
+
+/* MAIN FRAUD CHECK */
+function checkFraud() {
+
+    let data = {
+        accountId: document.getElementById("acc").value,
+        amount: parseFloat(document.getElementById("amt").value),
+        merchant: document.getElementById("mer").value,
+        channel: document.getElementById("cha").value,
+        location: document.getElementById("loc").value,
+        recentTxCount: Math.floor(Math.random() * 5)
+    };
+
+    fetch("/manual-check-api", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(tx => {
+
+        let reasons = generateFraudReasons(tx);
+
+        // ⭐ NOW we include reasons so PDF gets them
+        txData = { ...tx, reasons: reasons };
+
+        let reasonList = reasons.map(r => `<li>${r}</li>`).join("");
+
+        let box = document.getElementById("resultBox");
+        box.style.display = "block";
+
+        box.innerHTML = `
+            <h2>Score: ${(tx.score * 100).toFixed(1)}%</h2>
+
+            <p class="${tx.fraud ? 'fraud' : 'safe'}">
+                ${tx.fraud ? "⚠ Fraud Detected!" : "✔ Safe Transaction"}
+            </p>
+
+            <button class="btn" onclick="downloadPDF()" style="margin-top:15px;">
+                📄 Download PDF Report
+            </button>
+
+            <h3 style="color:#1f2d53; margin-top:15px;">Fraud Explanation:</h3>
+            <ul>${reasonList}</ul>
+        `;
+    });
+}
+
+/* DOWNLOAD PDF */
+function downloadPDF() {
+    
+    fetch("/download-pdf", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(txData)
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "fraud-report.pdf";
+        a.click();
+        window.URL.revokeObjectURL(url);
+    });
+}
+/* DARK MODE TOGGLE */
+const toggleBtn = document.getElementById("toggleThemeBtn");
+
+// Load saved mode
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    toggleBtn.textContent = "☀ Light Mode";
+}
+
+// Toggle theme
+toggleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+        toggleBtn.textContent = "☀ Light Mode";
+    } else {
+        localStorage.setItem("theme", "light");
+        toggleBtn.textContent = "🌙 Dark Mode";
+    }
+});
+
+</script>
+
+</body>
+</html>

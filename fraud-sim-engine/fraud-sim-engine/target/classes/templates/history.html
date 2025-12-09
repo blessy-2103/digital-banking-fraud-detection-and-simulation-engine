@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transaction History</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+        }
+
+        /* SIDEBAR */
+        #sidebar {
+            width: 240px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1b2b4a, #0d172a);
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding-top: 30px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        }
+
+        #sidebar .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        #sidebar .menu-item {
+            padding: 15px 25px;
+            color: #d4d8e3;
+            text-decoration: none;
+            font-size: 18px;
+            display: block;
+            transition: 0.3s;
+        }
+
+        #sidebar .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+            padding-left: 35px;
+            color: white;
+        }
+
+        .menu-item.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-weight: bold;
+        }
+
+        /* MAIN CONTENT AREA */
+        #content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #1b2b4a;
+            margin-bottom: 10px;
+        }
+
+        /* SEARCH BAR */
+        #searchBox {
+            width: 300px;
+            padding: 10px;
+            border: 2px solid #1b2b4a;
+            border-radius: 8px;
+            outline: none;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background: #1b2b4a;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #eef3ff;
+            cursor: pointer;
+        }
+
+        .highlight {
+            background: #fff2a8 !important;
+        }
+
+        /* MODAL */
+        #detailsModal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #modalBox {
+            background: white;
+            width: 450px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to   { transform: translateY(0); opacity: 1; }
+        }
+
+        .closeBtn {
+            background: #1b2b4a;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            float: right;
+            margin-top: 15px;
+        }
+        /* DARK MODE THEME */
+body.dark {
+    background: #121212;
+    color: #e8e8e8;
+}
+
+body.dark #content h1 {
+    color: #d5d9e2;
+}
+
+body.dark .form-box,
+body.dark .result-box {
+    background: #1e1e1e;
+    color: #e8e8e8;
+    box-shadow: 0 4px 15px rgba(255,255,255,0.05);
+}
+
+body.dark input, 
+body.dark select {
+    background: #2b2b2b;
+    color: white;
+    border: 1px solid #555;
+}
+
+body.dark .btn {
+    background: #2d4dff;
+}
+
+body.dark #sidebar {
+    background: linear-gradient(180deg, #0d0d0d, #1c1c1c);
+}
+/* HISTORY PAGE – DARK MODE FIX */
+body.dark table {
+    background: #1e1e1e;
+    color: #e8e8e8;
+}
+
+body.dark table th {
+    background: #0d0d0d !important;
+    color: #ffffff !important;
+}
+
+body.dark table tr {
+    background: #1e1e1e !important;
+}
+
+body.dark table tr:nth-child(even) {
+    background: #252525 !important;
+}
+
+body.dark table td {
+    color: #e8e8e8 !important;
+}
+
+/* Fraud and Safe colors unchanged */
+body.dark .fraud {
+    color: #ff4a4a !important;
+}
+
+body.dark .safe {
+    color: #2cff75 !important;
+}
+/* POPUP OVERLAY */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* POPUP CONTAINER (GLASS EFFECT) */
+.popup-box {
+    width: 480px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    color: #000;
+    animation: slideUp 0.35s ease-out;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* POPUP TITLE */
+.popup-box h2 {
+    margin-top: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: #1f2d53;
+}
+
+/* TEXT */
+.popup-box p {
+    margin: 6px 0;
+    font-size: 15px;
+}
+
+/* STATUS COLORS */
+.status-safe {
+    color: #00d46e;
+    font-weight: 700;
+}
+
+.status-fraud {
+    color: #ff3b3b;
+    font-weight: 700;
+}
+/* POPUP OVERLAY */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* POPUP CONTAINER (GLASS EFFECT) */
+.popup-box {
+    width: 480px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    color: #000;
+    animation: slideUp 0.35s ease-out;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* POPUP TITLE */
+.popup-box h2 {
+    margin-top: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: #1f2d53;
+}
+
+/* TEXT */
+.popup-box p {
+    margin: 6px 0;
+    font-size: 15px;
+}
+
+/* STATUS COLORS */
+.status-safe {
+    color: #00d46e;
+    font-weight: 700;
+}
+
+.status-fraud {
+    color: #ff3b3b;
+    font-weight: 700;
+}
+
+/* CLOSE BUTTON */
+.popup-close {
+    margin-top: 20px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: #1f2d53;
+    color: white;
+    font-size: 15px;
+    float: right;
+}
+
+.popup-close:hover {
+    background: #243665;
+}
+.popup-box * {
+    color: inherit !important;
+    opacity: 1 !important;
+}
+body.dark .popup-box * {
+    color: #ffffff !important;
+}
+body:not(.dark) .popup-box * {
+    color: #000000 !important;
+}
+
+/* DARK MODE FIX */
+body.dark .popup-box {
+    background: rgba(30, 30, 30, 0.55) !important;
+    color: white !important;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+body.dark .popup-box h2 {
+    color: #ffffff !important;
+}
+
+body.dark .popup-box p {
+    color: #cccccc !important;
+}
+
+body.dark .popup-close {
+    background: #333 !important;
+    color: white !important;
+    border: 1px solid #555;
+}
+
+body.dark .popup-close:hover {
+    background: #555 !important;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0px); opacity: 1; }
+}
+
+
+    </style>
+</head>
+
+<body>
+<div id="popupOverlay" class="popup-overlay">
+    <div class="popup-box">
+        <h2>Transaction Details</h2>
+        <div id="popupContent"></div>
+
+        <button class="popup-close" onclick="closePopup()">Close</button>
+    </div>
+</div>
+
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+    <h2 class="logo">FraudSim</h2>
+
+    <a href="/dashboard" class="menu-item">📊 Dashboard</a>
+    <a href="/manual-check" class="menu-item">📝 Manual Check</a>
+    <a href="/history" class="menu-item active">📜 Transaction History</a>
+    <div style="margin-top:auto; padding: 20px; text-align:center;">
+    <button id="toggleThemeBtn" 
+            style="padding:10px 20px; border:none; border-radius:8px; background:#ffffff20; color:white; cursor:pointer;">
+        🌙 Dark Mode
+    </button>
+</div>
+
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="content">
+
+<h1>Transaction History</h1>
+
+<input type="text" id="searchBox" placeholder="Search transactions..." onkeyup="searchHistory()">
+
+<table>
+    <thead>
+    <tr>
+        <th>Tx ID</th>
+        <th>Account</th>
+        <th>Amount</th>
+        <th>Merchant</th>
+        <th>Channel</th>
+        <th>Location</th>
+        <th>Score</th>
+        <th>Fraud</th>
+    </tr>
+    </thead>
+
+    <tbody id="historyTableBody"></tbody>
+</table>
+
+</div>
+
+<!-- MODAL -->
+<div id="detailsModal">
+    <div id="modalBox">
+        <h2 style="color:#1b2b4a;">Transaction Details</h2>
+
+        <div id="modalContent"
+             style="font-size:16px; margin-top:15px; line-height:1.6;">
+        </div>
+
+        <button class="closeBtn" onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    let allData = [];
+
+    window.onload = loadHistory;
+
+    function loadHistory() {
+        fetch("/history-data")
+            .then(res => res.json())
+            .then(data => {
+                allData = data;
+                renderTable(data);
+            });
+    }
+
+    function renderTable(data) {
+        let table = document.getElementById("historyTableBody");
+        table.innerHTML = "";
+
+        data.forEach(tx => {
+            let row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${tx.txId}</td>
+                <td>${tx.accountId}</td>
+                <td>₹${tx.amount}</td>
+                <td>${tx.merchant}</td>
+                <td>${tx.channel}</td>
+                <td>${tx.location}</td>
+                <td>${tx.score.toFixed(2)}%</td>
+                <td style="color:${tx.fraud ? 'red' : 'green'}; font-weight:600;">
+                    ${tx.fraud ? 'YES' : 'NO'}
+                </td>
+            `;
+
+            row.onclick = () => openModal(tx);
+
+            table.appendChild(row);
+        });
+    }
+
+    function searchHistory() {
+        let input = document.getElementById("searchBox").value.toLowerCase();
+
+        let rows = document.querySelectorAll("#historyTableBody tr");
+
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+
+            row.classList.remove("highlight");
+
+            if (text.includes(input)) {
+                row.style.display = "";
+                if (input !== "") row.classList.add("highlight");
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    function openModal(tx) {
+        document.getElementById("modalContent").innerHTML = `
+            <b>Transaction ID:</b> ${tx.txId}<br>
+            <b>Account ID:</b> ${tx.accountId}<br>
+            <b>Amount:</b> ₹${tx.amount}<br>
+            <b>Merchant:</b> ${tx.merchant}<br>
+            <b>Channel:</b> ${tx.channel}<br>
+            <b>Location:</b> ${tx.location}<br>
+            <b>Recent Tx Count:</b> ${tx.recentTxCount}<br>
+            <b>Fraud Score:</b> ${tx.score.toFixed(2)}%<br>
+            <b>Status:</b>
+            <span style="color:${tx.fraud ? 'red' : 'green'}; font-weight:bold;">
+                ${tx.fraud ? "FRAUD" : "SAFE"}
+            </span>
+        `;
+
+        document.getElementById("detailsModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("detailsModal").style.display = "none";
+    }
+    /* DARK MODE TOGGLE */
+const toggleBtn = document.getElementById("toggleThemeBtn");
+
+// Load saved mode
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    toggleBtn.textContent = "☀ Light Mode";
+}
+
+// Toggle theme
+toggleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+        toggleBtn.textContent = "☀ Light Mode";
+    } else {
+        localStorage.setItem("theme", "light");
+        toggleBtn.textContent = "🌙 Dark Mode";
+    }
+});
+function openPopup(tx) {
+    document.getElementById("popupOverlay").style.display = "flex";
+
+    let statusHtml = tx.fraud
+        ? `<span class="status-fraud">FRAUD</span>`
+        : `<span class="status-safe">SAFE</span>`;
+
+    document.getElementById("popupContent").innerHTML = `
+        <p><b>Transaction ID:</b> ${tx.txId}</p>
+        <p><b>Account ID:</b> ${tx.accountId}</p>
+        <p><b>Amount:</b> ₹${tx.amount}</p>
+        <p><b>Merchant:</b> ${tx.merchant}</p>
+        <p><b>Channel:</b> ${tx.channel}</p>
+        <p><b>Location:</b> ${tx.location}</p>
+        <p><b>Recent Tx Count:</b> ${tx.recentTxCount}</p>
+        <p><b>Fraud Score:</b> ${(tx.score * 100).toFixed(2)}%</p>
+        <p><b>Status:</b> ${statusHtml}</p>
+    `;
+}
+function closePopup() {
+    document.getElementById("popupOverlay").style.display = "none";
+}
+
+
+</script>
+
+</body>
+</html>
