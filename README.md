@@ -1,7 +1,30 @@
-# 🌐 Digital Banking Fraud Detection System
+# 🌐 **Digital Banking Fraud Detection And Simulation Engine**
+
+![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=java)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-brightgreen?style=for-the-badge&logo=springboot)
+![MySQL](https://img.shields.io/badge/MySQL-8+-blue?style=for-the-badge&logo=mysql)
+![Thymeleaf](https://img.shields.io/badge/Thymeleaf-Server--Side-green?style=for-the-badge&logo=thymeleaf)
+![Chart.js](https://img.shields.io/badge/Chart.js-Analytics-red?style=for-the-badge&logo=chartdotjs)
+![Status](https://img.shields.io/badge/Project-Active-success?style=for-the-badge)
+![Build](https://img.shields.io/badge/Build-Maven-blueviolet?style=for-the-badge&logo=apachemaven)
+![License](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)
 
 A full–stack banking fraud detection simulator built using Spring Boot, Java, Thymeleaf, and MySQL.
-The system allows manual fraud checking, transaction history storage, PDF report generation, and includes a fully responsive light/dark mode interface.
+The system allows real-time dashboards, manual fraud checking, transaction history storage, PDF report generation and ML performance analytics.
+
+#🎯 **Project Objective**
+
+1.Detect and assess high-risk financial transactions
+
+2.Provide manual fraud validation with explainable risk reasons
+
+3.Maintain a persistent transaction audit trail
+
+4.Offer real-time dashboards & alerts
+
+5.Visualize ML model health and performance metrics
+
+6.Generate investigation-ready PDF reports
 
 # 🚀 Features
 
