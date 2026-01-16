@@ -176,7 +176,6 @@ http://localhost:8080/
 <img width="1920" height="1080" alt="Screenshot (302)" src="https://github.com/user-attachments/assets/759910e0-1c40-4435-931a-6551b36878c5" />
 <img width="1920" height="1080" alt="Screenshot (303)" src="https://github.com/user-attachments/assets/ee40b88b-26da-48ef-af37-46323a0da20e" />
 <img width="1920" height="1080" alt="Screenshot (304)" src="https://github.com/user-attachments/assets/0ff7e7cd-2d88-47f5-8850-7cde9917169b" />
-<img width="1920" height="1080" alt="Screenshot (238)" src="https://github.com/user-attachments/assets/b94a80d6-98fb-41b2-bcd8-4438cafdab33" />
 <img width="1920" height="1080" alt="Screenshot (305)" src="https://github.com/user-attachments/assets/f908b335-081b-46d1-8e4d-c2e9fb8e0d7d" />
 <img width="1920" height="1080" alt="Screenshot (306)" src="https://github.com/user-attachments/assets/4eadbb5e-84e5-4132-8a7c-7f5196fa1b98" />
 <img width="1920" height="1080" alt="Screenshot (311)" src="https://github.com/user-attachments/assets/c05b205b-ffcd-40f4-841c-32fd4d130406" />
